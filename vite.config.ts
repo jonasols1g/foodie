@@ -34,7 +34,7 @@ function cspMetaTagPlugin(): Plugin {
 
 // https://vite.dev/config/
 export default defineConfig({
-  base: "/foodlist/",
+  base: "/foodie/",
   plugins: [react(), tailwindcss(), cspMetaTagPlugin()],
   test: {
     environment: "jsdom",

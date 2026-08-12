@@ -1,5 +1,5 @@
 {
-  "name": "foodlist",
+  "name": "foodie",
   "private": true,
   "version": "0.0.0",
   "description": "Personlig, klient-side webapp for å holde styr på restauranter du vil besøke og har besøkt, vist i liste og på kart.",

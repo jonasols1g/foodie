@@ -43,7 +43,7 @@ export function App() {
               fremtidige endringer skal fortsatt designes mobil-først. */}
           <main className="mx-auto min-h-screen max-w-md p-4">
             <header className="mb-4">
-              <h1 className="text-2xl font-semibold">Foodlist</h1>
+              <h1 className="text-2xl font-semibold">Foodie</h1>
             </header>
             <SaveErrorBannerContainer />
             <Routes>

@@ -4,7 +4,7 @@ import { registerFirestoreStub } from "./fixtures/firestoreStub.ts";
 import { registerMapboxStyleStub } from "./fixtures/mapboxStub.ts";
 
 // Triviell røyktest: verifiserer at produksjonsbygget serveres under
-// /foodlist/-understien og at appen faktisk rendrer. `AuthContext` og
+// /foodie/-understien og at appen faktisk rendrer. `AuthContext` og
 // `RestaurantContext` gjør nettverkskall ved mount på enhver side, uansett
 // spec — derfor stubbes Firebase/Firestore/Mapbox-style her, uavhengig av
 // om testen selv bruker dem.
@@ -14,11 +14,11 @@ test.beforeEach(async ({ page }) => {
   await registerMapboxStyleStub(page);
 });
 
-test("appen laster under /foodlist/-understien og viser tom liste", async ({
+test("appen laster under /foodie/-understien og viser tom liste", async ({
   page,
 }) => {
   await page.goto("./");
-  await expect(page.getByRole("heading", { name: "Foodlist" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Foodie" })).toBeVisible();
   await expect(page.getByText("Ingen restauranter lagt til ennå.")).toBeVisible();
   await expect(
     page.getByRole("button", { name: "+ Legg til restaurant" }),

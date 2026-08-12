@@ -29,8 +29,8 @@ function createFakeIdToken(): string {
   const header = { alg: "RS256", typ: "JWT", kid: "e2e-fake-kid" };
   const payload = {
     provider_id: "anonymous",
-    iss: "https://securetoken.google.com/foodlist-e2e",
-    aud: "foodlist-e2e",
+    iss: "https://securetoken.google.com/foodie-e2e",
+    aud: "foodie-e2e",
     auth_time: nowSeconds,
     user_id: FAKE_UID,
     sub: FAKE_UID,

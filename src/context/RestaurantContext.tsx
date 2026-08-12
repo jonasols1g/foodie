@@ -52,7 +52,7 @@ export interface RestaurantProviderProps {
  *
  * Enklere enn watchlist sin tilsvarende kontekst (som håndterer en
  * localStorage->Firestore-migrering ved siden av en fortsatt aktiv
- * localStorage-skriveputt) — foodlist er greenfield, Firestore er eneste
+ * localStorage-skriveputt) — Foodie er greenfield, Firestore er eneste
  * datakilde, og det er derfor ikke behov for presis per-handling
  * angre/gjør-om-patching av samtidige handlinger under hydrering. Ved feilet
  * skriving rulles hele `restaurants`-arrayet tilbake til tilstanden rett før

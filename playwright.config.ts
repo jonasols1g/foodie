@@ -1,7 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
 
 // E2E kjører alltid mot produksjonsbygget (vite preview), aldri dev-serveren:
-// `base: '/foodlist/'`, `basename` og 404.html-fallbacken finnes kun i bygget app.
+// `base: '/foodie/'`, `basename` og 404.html-fallbacken finnes kun i bygget app.
 export default defineConfig({
   testDir: "e2e",
   fullyParallel: true,
@@ -9,7 +9,7 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   reporter: process.env.CI ? [["html"], ["github"]] : "html",
   use: {
-    baseURL: "http://localhost:4173/foodlist/",
+    baseURL: "http://localhost:4173/foodie/",
     trace: "on-first-retry",
   },
   // Appen brukes kun på mobiltelefon — test mot en ekte mobilprofil
@@ -18,7 +18,7 @@ export default defineConfig({
   projects: [{ name: "mobile-chromium", use: { ...devices["Pixel 7"] } }],
   webServer: {
     command: "npm run build && npm run preview",
-    url: "http://localhost:4173/foodlist/",
+    url: "http://localhost:4173/foodie/",
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
     // Kartet/søket krever en (ikke-tom) VITE_MAPBOX_TOKEN for å bygge inn i
