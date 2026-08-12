@@ -1,0 +1,22 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand: oklch(0.62 0.17 25);
+  --color-brand-dark: oklch(0.5 0.16 25);
+  --color-visited: oklch(0.62 0.13 155);
+  --color-planned: oklch(0.7 0.15 75);
+  --color-surface: oklch(0.98 0.005 80);
+  --color-surface-border: oklch(0.88 0.01 80);
+  --color-text-primary: oklch(0.22 0.02 60);
+  --color-text-muted: oklch(0.5 0.02 60);
+}
+
+:root {
+  color-scheme: light;
+}
+
+body {
+  min-height: 100vh;
+  color: var(--color-text-primary);
+  background: var(--color-surface);
+}

@@ -1,0 +1,115 @@
+name: CI
+
+on:
+  push:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Lint, enhetstester, audit og bygg
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm test
+      # Brekk bygget på sårbarheter med høy/kritisk alvorlighetsgrad.
+      - run: npm audit --audit-level=high
+      # Bygg-scriptet kopierer dist/index.html -> dist/404.html (SPA-fallback
+      # for GitHub Pages). Secrets finnes kun i CI (ikke i PR-er fra forks),
+      # så denne bygg-verifiseringen kjører uten dem — appen bygger fint med
+      # tomme nøkler (VITE_MAPBOX_TOKEN tom betyr kartet viser en
+      # fallback-melding i stedet for å krasje, se RestaurantMap.tsx).
+      - run: npm run build
+
+  e2e:
+    name: E2E (Playwright)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      # webServer i playwright.config.ts bygger og starter vite preview mot
+      # produksjonsbygget. E2E kjører alltid mot stubbet nettverk (se
+      # e2e/fixtures/) — aldri mot ekte Firebase-/Mapbox-kall.
+      # VITE_FIREBASE_* må likevel være satt: `firebaseClient.ts` kaller
+      # `getAuth(firebaseApp)` synkront på modulnivå og kaster
+      # `auth/invalid-api-key` ved tomt/ugyldig config — det ville feilet
+      # appens mount før noen side i det hele tatt rendres. Selve auth-
+      # *kallet* (signInAnonymously) treffer likevel kun stubbet trafikk her.
+      # VITE_MAPBOX_TOKEN trenger ikke være en ekte token (all Mapbox-trafikk
+      # stubbes), men må være ikke-tom for at kartet skal rendre i det hele
+      # tatt fremfor fallback-meldingen — playwright.config.ts sin
+      # webServer.env faller automatisk tilbake til en placeholder om
+      # secreten ikke er satt.
+      - run: npx playwright test
+        env:
+          VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
+          VITE_FIREBASE_AUTH_DOMAIN: ${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }}
+          VITE_FIREBASE_PROJECT_ID: ${{ secrets.VITE_FIREBASE_PROJECT_ID }}
+          VITE_FIREBASE_STORAGE_BUCKET: ${{ secrets.VITE_FIREBASE_STORAGE_BUCKET }}
+          VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.VITE_FIREBASE_MESSAGING_SENDER_ID }}
+          VITE_FIREBASE_APP_ID: ${{ secrets.VITE_FIREBASE_APP_ID }}
+          VITE_MAPBOX_TOKEN: ${{ secrets.VITE_MAPBOX_TOKEN }}
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
+
+  deploy:
+    name: Publiser til GitHub Pages
+    needs: [test, e2e]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    concurrency:
+      group: "pages"
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      # API-nøklene bakes inn i klientbundelen ved build (VITE_-prefiks
+      # kreves for at Vite skal eksponere dem). VITE_FIREBASE_* er ikke
+      # valgfrie: `firebaseClient.ts` kaller `getAuth(firebaseApp)` synkront
+      # på modulnivå, som kaster `auth/invalid-api-key` med tomt/ugyldig
+      # config — det ville krasjet hele React-treet for ekte besøkende idet
+      # den publiserte bundelen laster i nettleseren. VITE_MAPBOX_TOKEN kan i
+      # prinsippet mangle uten at selve `vite build`-steget feiler — kartet
+      # ville da bare vise en synlig, men ikke-fatal fallback-melding.
+      - run: npm run build
+        env:
+          VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
+          VITE_FIREBASE_AUTH_DOMAIN: ${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }}
+          VITE_FIREBASE_PROJECT_ID: ${{ secrets.VITE_FIREBASE_PROJECT_ID }}
+          VITE_FIREBASE_STORAGE_BUCKET: ${{ secrets.VITE_FIREBASE_STORAGE_BUCKET }}
+          VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.VITE_FIREBASE_MESSAGING_SENDER_ID }}
+          VITE_FIREBASE_APP_ID: ${{ secrets.VITE_FIREBASE_APP_ID }}
+          VITE_MAPBOX_TOKEN: ${{ secrets.VITE_MAPBOX_TOKEN }}
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+      - id: deployment
+        uses: actions/deploy-pages@v4
