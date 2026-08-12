@@ -5,6 +5,7 @@ export type RestaurantStatusFilter = RestaurantStatus | "all";
 export interface RestaurantFilterBarProps {
   value: RestaurantStatusFilter;
   onChange: (value: RestaurantStatusFilter) => void;
+  counts: Record<RestaurantStatusFilter, number>;
 }
 
 const OPTIONS: { value: RestaurantStatusFilter; label: string }[] = [
@@ -13,30 +14,56 @@ const OPTIONS: { value: RestaurantStatusFilter; label: string }[] = [
   { value: "visited", label: "Besøkt" },
 ];
 
-export function RestaurantFilterBar({ value, onChange }: RestaurantFilterBarProps) {
+// Prikkfarge foran inaktive Planlagt/Besøkt-piller (se design/README.md).
+const DOT_CLASSNAME: Partial<Record<RestaurantStatusFilter, string>> = {
+  planned: "bg-planned",
+  visited: "bg-visited",
+};
+
+export function RestaurantFilterBar({
+  value,
+  onChange,
+  counts,
+}: RestaurantFilterBarProps) {
   return (
     <div
       role="group"
       aria-label="Filtrer restauranter etter status"
-      className="border-surface-border flex w-full rounded-xl border p-1"
+      className="flex gap-2"
     >
-      {OPTIONS.map((option) => (
-        <button
-          key={option.value}
-          type="button"
-          aria-pressed={value === option.value}
-          onClick={() => {
-            onChange(option.value);
-          }}
-          className={`flex-1 rounded-lg px-3 py-2.5 text-sm font-medium transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black ${
-            value === option.value
-              ? "bg-brand text-white"
-              : "text-text-muted hover:text-text-primary"
-          }`}
-        >
-          {option.label}
-        </button>
-      ))}
+      {OPTIONS.map((option) => {
+        const isActive = value === option.value;
+        const dotClassName = DOT_CLASSNAME[option.value];
+        return (
+          <button
+            key={option.value}
+            type="button"
+            aria-pressed={isActive}
+            onClick={() => {
+              onChange(option.value);
+            }}
+            className={`flex h-[38px] items-center gap-1.5 rounded-full px-4 text-sm font-medium transition ${
+              isActive
+                ? "bg-ink text-bg"
+                : "bg-surface border-border-strong text-ink-soft border"
+            }`}
+          >
+            {!isActive && dotClassName && (
+              <span
+                aria-hidden="true"
+                className={`h-[7px] w-[7px] rounded-full ${dotClassName}`}
+              />
+            )}
+            <span>{option.label}</span>
+            <span
+              aria-hidden="true"
+              className={isActive ? "opacity-55" : "text-ink-faint"}
+            >
+              {counts[option.value]}
+            </span>
+          </button>
+        );
+      })}
     </div>
   );
 }

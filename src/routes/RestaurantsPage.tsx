@@ -29,6 +29,19 @@ export function RestaurantsPage() {
     [restaurants, statusFilter],
   );
 
+  // Antallene i filterpillene regnes alltid ut fra hele datasettet, ikke det
+  // filtrerte utvalget (se design/README.md).
+  const counts = useMemo<Record<RestaurantStatusFilter, number>>(
+    () => ({
+      all: restaurants.length,
+      planned: restaurants.filter((restaurant) => restaurant.status === "planned")
+        .length,
+      visited: restaurants.filter((restaurant) => restaurant.status === "visited")
+        .length,
+    }),
+    [restaurants],
+  );
+
   if (isLoading) {
     return <LoadingSpinner label="Laster restauranter …" />;
   }
@@ -39,7 +52,11 @@ export function RestaurantsPage() {
           knapp på mobil, og et forsøk på å presse filter + legg-til-knapp
           inn på én rad klemmer dem for smale til å være gode trykkmål. */}
       <div className="mb-4 flex flex-col gap-3">
-        <RestaurantFilterBar value={statusFilter} onChange={setStatusFilter} />
+        <RestaurantFilterBar
+          value={statusFilter}
+          onChange={setStatusFilter}
+          counts={counts}
+        />
         <button
           type="button"
           onClick={() => {

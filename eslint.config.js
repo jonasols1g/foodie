@@ -12,6 +12,9 @@ export default tseslint.config(
       "node_modules",
       "playwright-report",
       "test-results",
+      // Designreferanse (statisk HTML-prototype + støttescript), ikke
+      // app-kildekode — se design/README.md.
+      "design",
     ],
   },
   eslint.configs.recommended,

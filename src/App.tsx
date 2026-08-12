@@ -31,6 +31,21 @@ function SaveErrorBannerContainer() {
   return <SaveErrorBanner onDismiss={dismissSaveError} />;
 }
 
+// Se design/README.md — header-teller: mono 11px, text-ink-muted,
+// letter-spacing 0.04em, f.eks. «12 STEDER».
+function HeaderCounter() {
+  const { isLoading, restaurants } = useRestaurants();
+  if (isLoading) {
+    return null;
+  }
+  const label = restaurants.length === 1 ? "STED" : "STEDER";
+  return (
+    <span className="text-ink-muted font-mono text-[11px] tracking-[0.04em] uppercase">
+      {restaurants.length} {label}
+    </span>
+  );
+}
+
 export function App() {
   return (
     <AuthProvider>
@@ -42,8 +57,9 @@ export function App() {
               nettleser. Ingen `md:`/`lg:`-varianter skal legges til her;
               fremtidige endringer skal fortsatt designes mobil-først. */}
           <main className="mx-auto min-h-screen max-w-md p-4">
-            <header className="mb-4">
-              <h1 className="text-2xl font-semibold">Foodie</h1>
+            <header className="mb-4 flex items-center justify-between">
+              <h1 className="text-2xl font-bold tracking-[-0.02em]">Foodie</h1>
+              <HeaderCounter />
             </header>
             <SaveErrorBannerContainer />
             <Routes>

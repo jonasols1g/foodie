@@ -1,4 +1,5 @@
 import type { Restaurant } from "../../types/restaurant";
+import { CategoryChip } from "./CategoryChip";
 import { RestaurantStatusBadge } from "./RestaurantStatusBadge";
 import { RestaurantStatusToggle } from "./RestaurantStatusToggle";
 
@@ -36,9 +37,11 @@ export function RestaurantListItem({
         </div>
         <p className="text-text-muted text-sm">{restaurant.address}</p>
         {restaurant.categories.length > 0 && (
-          <p className="text-text-muted mt-1 text-xs">
-            {restaurant.categories.join(", ")}
-          </p>
+          <div className="mt-1.5 flex flex-wrap gap-1.5">
+            {restaurant.categories.map((category) => (
+              <CategoryChip key={category} category={category} />
+            ))}
+          </div>
         )}
         {restaurant.notes && <p className="mt-2 text-sm">{restaurant.notes}</p>}
       </button>

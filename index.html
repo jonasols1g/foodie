@@ -11,6 +11,17 @@
       Vites dev-server, som bruker inline <style>-tagger for HMR.
     -->
     <title>Foodie</title>
+    <!--
+      Schibsted Grotesk (400/500/600/700) + JetBrains Mono (400/500) —
+      designtokens fra design/README.md. `preconnect` varmer opp DNS/TLS mot
+      begge Google Fonts-domenene før selve stilarket lastes.
+    -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
   </head>
   <body>
     <div id="root"></div>

@@ -12,6 +12,11 @@ import { defaultExclude, defineConfig, type Plugin } from "vitest/config";
 // Mapbox (kart-styles/tiles + Search Box API). worker-src 'blob:' trengs
 // fordi mapbox-gl bruker web workers lastet fra blob-URL-er for
 // tile-parsing.
+//
+// style-src/font-src inkluderer Google Fonts (Schibsted Grotesk +
+// JetBrains Mono, designtokens fra design/README.md): stilarket ligger på
+// fonts.googleapis.com, selve fontfilene lastes derfra videre fra
+// fonts.gstatic.com.
 function cspMetaTagPlugin(): Plugin {
   return {
     name: "csp-meta-tag",
@@ -23,7 +28,7 @@ function cspMetaTagPlugin(): Plugin {
           attrs: {
             "http-equiv": "Content-Security-Policy",
             content:
-              "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob: https://api.mapbox.com; worker-src 'self' blob:; connect-src 'self' https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://api.mapbox.com https://events.mapbox.com; base-uri 'self'; form-action 'self'",
+              "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://api.mapbox.com; worker-src 'self' blob:; connect-src 'self' https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://api.mapbox.com https://events.mapbox.com; base-uri 'self'; form-action 'self'",
           },
           injectTo: "head-prepend",
         },
