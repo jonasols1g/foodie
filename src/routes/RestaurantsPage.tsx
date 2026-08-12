@@ -35,23 +35,27 @@ export function RestaurantsPage() {
 
   return (
     <div>
-      <div className="mb-4 flex items-center justify-between gap-3">
+      {/* Kontrollene stables vertikalt og bruker full bredde — plass er
+          knapp på mobil, og et forsøk på å presse filter + legg-til-knapp
+          inn på én rad klemmer dem for smale til å være gode trykkmål. */}
+      <div className="mb-4 flex flex-col gap-3">
         <RestaurantFilterBar value={statusFilter} onChange={setStatusFilter} />
         <button
           type="button"
           onClick={() => {
             setIsAddModalOpen(true);
           }}
-          className="bg-brand rounded-xl px-4 py-2 text-sm font-medium text-white transition hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
+          className="bg-brand w-full rounded-xl px-4 py-3 text-base font-medium text-white transition hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
         >
           + Legg til restaurant
         </button>
       </div>
-      {/* Layout-valget (grid her, kan bli faner/stack senere når designet er
-          bestemt) — RestaurantList og RestaurantMap er begge
-          layout-agnostiske og deler kun `selectedId`, så de kan omorganiseres
-          fritt uten å røre datalogikk. */}
-      <div className="grid gap-4 md:grid-cols-2">
+      {/* Liste og kart stables alltid under hverandre — appen brukes kun på
+          mobil, så det finnes ingen bred nok skjerm å vise dem side ved
+          side på. RestaurantList og RestaurantMap er begge layout-agnostiske
+          og deler kun `selectedId`, så rekkefølgen kan endres fritt senere
+          uten å røre datalogikk. */}
+      <div className="flex flex-col gap-4">
         <RestaurantList
           restaurants={filtered}
           selectedId={selectedId}
@@ -64,7 +68,7 @@ export function RestaurantsPage() {
           restaurants={filtered}
           selectedId={selectedId}
           onSelectRestaurant={setSelectedId}
-          className="md:sticky md:top-4 md:h-[calc(100vh-8rem)]"
+          className="h-72"
         />
       </div>
 

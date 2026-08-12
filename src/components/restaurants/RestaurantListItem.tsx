@@ -49,7 +49,7 @@ export function RestaurantListItem({
             href={restaurant.websiteUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-brand text-sm underline"
+            className="text-brand p-2 text-sm underline"
           >
             Nettside
           </a>
@@ -65,7 +65,7 @@ export function RestaurantListItem({
           onClick={() => {
             onRemove(restaurant.id);
           }}
-          className="text-text-muted hover:text-brand ml-auto text-sm underline"
+          className="text-text-muted hover:text-brand ml-auto p-2 text-sm underline"
         >
           Fjern
         </button>

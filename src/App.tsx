@@ -36,7 +36,12 @@ export function App() {
     <AuthProvider>
       <AuthenticatedRestaurantProvider>
         <BrowserRouter basename={import.meta.env.BASE_URL}>
-          <main className="mx-auto min-h-screen max-w-5xl p-4">
+          {/* Appen brukes kun på mobiltelefon (bevisst valg, ikke et
+              foreløpig steg) — `max-w-md mx-auto` matcher en typisk
+              telefonbredde selv om noen skulle åpne den i en bredere
+              nettleser. Ingen `md:`/`lg:`-varianter skal legges til her;
+              fremtidige endringer skal fortsatt designes mobil-først. */}
+          <main className="mx-auto min-h-screen max-w-md p-4">
             <header className="mb-4">
               <h1 className="text-2xl font-semibold">Foodlist</h1>
             </header>

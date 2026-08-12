@@ -139,6 +139,9 @@ export function usePlaceSearch(): UsePlaceSearchResult {
     url.searchParams.set("session_token", sessionTokenRef.current);
     url.searchParams.set("language", "no");
     url.searchParams.set("poi_category", "restaurant,cafe,bar,fast_food");
+    // Kun norske restauranter er aktuelle for brukeren — begrenser Search
+    // Box-treffene til Norge (ISO 3166-1 alpha-2).
+    url.searchParams.set("country", "no");
     url.searchParams.set("limit", "8");
 
     fetch(url, { signal: controller.signal })

@@ -12,7 +12,10 @@ export default defineConfig({
     baseURL: "http://localhost:4173/foodlist/",
     trace: "on-first-retry",
   },
-  projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
+  // Appen brukes kun på mobiltelefon — test mot en ekte mobilprofil
+  // (viewport, touch, user-agent), ikke Desktop Chrome, slik at e2e faktisk
+  // dekker det brukeren opplever.
+  projects: [{ name: "mobile-chromium", use: { ...devices["Pixel 7"] } }],
   webServer: {
     command: "npm run build && npm run preview",
     url: "http://localhost:4173/foodlist/",

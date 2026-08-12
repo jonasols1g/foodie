@@ -18,7 +18,7 @@ export function RestaurantFilterBar({ value, onChange }: RestaurantFilterBarProp
     <div
       role="group"
       aria-label="Filtrer restauranter etter status"
-      className="border-surface-border mb-4 inline-flex rounded-xl border p-1"
+      className="border-surface-border flex w-full rounded-xl border p-1"
     >
       {OPTIONS.map((option) => (
         <button
@@ -28,7 +28,7 @@ export function RestaurantFilterBar({ value, onChange }: RestaurantFilterBarProp
           onClick={() => {
             onChange(option.value);
           }}
-          className={`rounded-lg px-3 py-1.5 text-sm font-medium transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black ${
+          className={`flex-1 rounded-lg px-3 py-2.5 text-sm font-medium transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black ${
             value === option.value
               ? "bg-brand text-white"
               : "text-text-muted hover:text-text-primary"

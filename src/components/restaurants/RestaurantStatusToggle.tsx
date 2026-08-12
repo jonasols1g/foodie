@@ -19,7 +19,7 @@ export function RestaurantStatusToggle({
       onClick={() => {
         onChange(nextStatus);
       }}
-      className="border-surface-border hover:bg-surface-border/40 rounded-lg border px-3 py-1.5 text-sm font-medium transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
+      className="border-surface-border hover:bg-surface-border/40 rounded-lg border px-3 py-2 text-sm font-medium transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
     >
       {label}
     </button>

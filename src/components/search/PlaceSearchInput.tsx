@@ -32,7 +32,7 @@ export function PlaceSearchInput({
           onQueryChange(event.target.value);
         }}
         placeholder="Skriv navn på restaurant …"
-        className="border-surface-border w-full rounded-lg border px-3 py-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
+        className="border-surface-border w-full rounded-lg border px-3 py-3 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
       />
 
       {isSearching && (
@@ -52,7 +52,7 @@ export function PlaceSearchInput({
                 onClick={() => {
                   onSelect(suggestion);
                 }}
-                className="hover:bg-surface-border/30 block w-full px-3 py-2 text-left text-sm"
+                className="hover:bg-surface-border/30 block w-full px-3 py-3 text-left text-sm"
               >
                 <span className="block font-medium">{suggestion.name}</span>
                 {suggestion.address && (

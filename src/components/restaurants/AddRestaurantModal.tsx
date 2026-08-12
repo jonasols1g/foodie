@@ -79,21 +79,25 @@ export function AddRestaurantModal({ onClose }: AddRestaurantModalProps) {
       role="dialog"
       aria-modal="true"
       aria-label="Legg til restaurant"
-      className="fixed inset-0 z-20 flex items-start justify-center bg-black/40 p-4 pt-16"
+      // Bottom sheet fremfor sentrert dialog: på mobil er dette lettere å nå
+      // med tommelen, og unngår at et fastsatt topp-mellomrom (som passer på
+      // desktop) skyver innholdet ut av syne når det virtuelle tastaturet
+      // tar halve skjermen ved søk.
+      className="fixed inset-0 z-20 flex items-end bg-black/40"
       onClick={(event) => {
         if (event.target === event.currentTarget) {
           handleClose();
         }
       }}
     >
-      <div className="bg-surface w-full max-w-md rounded-2xl p-4 shadow-lg">
+      <div className="bg-surface max-h-[85vh] w-full overflow-y-auto rounded-t-2xl p-4 shadow-lg">
         <div className="mb-3 flex items-center justify-between">
           <h2 className="text-lg font-semibold">Legg til restaurant</h2>
           <button
             type="button"
             onClick={handleClose}
             aria-label="Lukk"
-            className="text-text-muted hover:text-text-primary"
+            className="text-text-muted hover:text-text-primary p-2"
           >
             ✕
           </button>
@@ -147,17 +151,17 @@ export function AddRestaurantModal({ onClose }: AddRestaurantModalProps) {
               />
             </div>
 
-            <div className="mt-2 flex justify-between gap-2">
+            <div className="mt-2 flex flex-col-reverse gap-2">
               <button
                 type="button"
                 onClick={handleBackToSearch}
-                className="text-text-muted hover:text-text-primary text-sm underline"
+                className="text-text-muted hover:text-text-primary py-2 text-center text-sm underline"
               >
                 Tilbake til søk
               </button>
               <button
                 type="submit"
-                className="bg-brand rounded-xl px-4 py-2 font-medium text-white transition hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
+                className="bg-brand w-full rounded-xl px-4 py-3 text-base font-medium text-white transition hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
               >
                 Legg til
               </button>
