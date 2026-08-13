@@ -127,7 +127,7 @@ export function RestaurantsPage() {
         <div className="flex items-center gap-2">
           <h1 className="text-ink text-2xl font-bold tracking-[-0.02em]">Foodie</h1>
           <img
-            src={`${import.meta.env.BASE_URL}icons/foodie-bowl-charcoal-compact.svg`}
+            src={`${import.meta.env.BASE_URL}icons/foodie-bowl-charcoal.svg`}
             alt=""
             width={26}
             height={26}
