@@ -117,7 +117,16 @@ export function RestaurantsPage() {
   return (
     <div>
       <header className="flex items-center justify-between px-5 pt-4 pb-3">
-        <h1 className="text-ink text-2xl font-bold tracking-[-0.02em]">Foodie</h1>
+        <div className="flex items-center gap-2">
+          <h1 className="text-ink text-2xl font-bold tracking-[-0.02em]">Foodie</h1>
+          <img
+            src={`${import.meta.env.BASE_URL}icons/foodie-bowl-charcoal-compact.svg`}
+            alt=""
+            width={26}
+            height={26}
+            className="translate-y-[1px]"
+          />
+        </div>
         {headerCounter && (
           <span className="text-ink-muted font-mono text-[11px] tracking-[0.04em] uppercase">
             {headerCounter}
