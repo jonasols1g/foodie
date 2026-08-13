@@ -34,13 +34,12 @@ test("legge til en restaurant via søk viser den i listen med riktig status", as
 
   // Steg 2: bekreftelsesskjema med forhåndsutfylt nettside fra Mapbox-metadata.
   await expect(page.getByText("Maaemo")).toBeVisible();
-  await expect(page.getByLabel("Nettside (valgfritt)")).toHaveValue(
-    MAAEMO.websiteUrl,
-  );
+  await expect(page.getByLabel("Nettside")).toHaveValue(MAAEMO.websiteUrl);
 
-  await page.getByRole("button", { name: "Legg til", exact: true }).click();
+  await page.getByRole("button", { name: "Lagre restaurant" }).click();
 
-  // Modalen lukkes, og restauranten dukker opp i listen med "Planlagt"-status.
+  // Sheeten lukkes, og restauranten dukker opp i listen med "Planlagt"-status
+  // (standardvalgt status i steg 2, ikke endret i denne testen).
   const listItem = page.locator("li", { hasText: "Maaemo" });
   await expect(listItem.getByRole("heading", { name: "Maaemo" })).toBeVisible();
   await expect(listItem.getByText("Planlagt", { exact: true })).toBeVisible();
@@ -54,7 +53,7 @@ test("filter viser kun restauranter med valgt status, og statusendring flytter d
   await page.getByRole("button", { name: "+ Legg til restaurant" }).click();
   await page.getByLabel("Søk etter restaurant").fill("Maaemo");
   await page.getByRole("option", { name: /Maaemo/ }).click();
-  await page.getByRole("button", { name: "Legg til", exact: true }).click();
+  await page.getByRole("button", { name: "Lagre restaurant" }).click();
 
   await expect(page.getByRole("heading", { name: "Maaemo" })).toBeVisible();
 
@@ -66,9 +65,12 @@ test("filter viser kun restauranter med valgt status, og statusendring flytter d
   await filterBar.getByRole("button", { name: "Besøkt", exact: true }).click();
   await expect(page.getByText("Ingen besøkte restauranter ennå.")).toBeVisible();
 
-  // Tilbake til "Alle", marker som besøkt.
+  // Tilbake til "Alle". Handlingsraden (statusknapp/nettside/slett) vises
+  // først når kortet er valgt/ekspandert, så kortet trykkes først.
   await filterBar.getByRole("button", { name: "Alle", exact: true }).click();
-  await page.getByRole("button", { name: "Marker som besøkt" }).click();
+  const listItem = page.locator("li", { hasText: "Maaemo" });
+  await listItem.getByRole("button", { name: /Maaemo/ }).click();
+  await listItem.getByRole("button", { name: "Marker som besøkt" }).click();
 
   await filterBar.getByRole("button", { name: "Besøkt", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Maaemo" })).toBeVisible();
@@ -82,7 +84,7 @@ test("restauranten består over en reload (persisterer i Firestore)", async ({
   await page.getByRole("button", { name: "+ Legg til restaurant" }).click();
   await page.getByLabel("Søk etter restaurant").fill("Maaemo");
   await page.getByRole("option", { name: /Maaemo/ }).click();
-  await page.getByRole("button", { name: "Legg til", exact: true }).click();
+  await page.getByRole("button", { name: "Lagre restaurant" }).click();
   await expect(page.getByRole("heading", { name: "Maaemo" })).toBeVisible();
 
   await page.reload();
@@ -95,9 +97,15 @@ test("fjerne en restaurant tømmer listen igjen", async ({ page }) => {
   await page.getByRole("button", { name: "+ Legg til restaurant" }).click();
   await page.getByLabel("Søk etter restaurant").fill("Maaemo");
   await page.getByRole("option", { name: /Maaemo/ }).click();
-  await page.getByRole("button", { name: "Legg til", exact: true }).click();
+  await page.getByRole("button", { name: "Lagre restaurant" }).click();
   await expect(page.getByRole("heading", { name: "Maaemo" })).toBeVisible();
 
-  await page.getByRole("button", { name: "Fjern" }).click();
-  await expect(page.getByText("Ingen restauranter lagt til ennå.")).toBeVisible();
+  // Slett-ikonet vises kun når kortet er valgt/ekspandert, og sletting
+  // krever en inline-bekreftelse ("Fjern") — ingen full-skjerm-dialog.
+  const listItem = page.locator("li", { hasText: "Maaemo" });
+  await listItem.getByRole("button", { name: /Maaemo/ }).click();
+  await listItem.getByRole("button", { name: "Slett Maaemo" }).click();
+  await listItem.getByRole("button", { name: "Fjern", exact: true }).click();
+
+  await expect(page.getByText("Ingen steder ennå")).toBeVisible();
 });

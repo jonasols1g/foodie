@@ -7,9 +7,11 @@ export interface RestaurantMarkerProps {
   onClick: (id: string) => void;
 }
 
-const STATUS_COLOR: Record<Restaurant["status"], string> = {
-  planned: "#c9922f",
-  visited: "#3f8f5f",
+// Se design/README.md — "Pin": rounded-full + éi avrundet hjørne + rotate-45
+// gir en dråpe-/diamantform. Planlagt/besøkt-farge, valgt = større + accent.
+const STATUS_BG_CLASS: Record<Restaurant["status"], string> = {
+  planned: "bg-planned",
+  visited: "bg-visited",
 };
 
 export function RestaurantMarker({
@@ -17,29 +19,42 @@ export function RestaurantMarker({
   isSelected,
   onClick,
 }: RestaurantMarkerProps) {
+  const size = isSelected ? 34 : 22;
+
   return (
     <Marker
       longitude={restaurant.lng}
       latitude={restaurant.lat}
-      anchor="bottom"
+      anchor="center"
       onClick={(event) => {
         event.originalEvent.stopPropagation();
         onClick(restaurant.id);
       }}
     >
-      <svg
-        width={isSelected ? 34 : 26}
-        height={isSelected ? 34 : 26}
-        viewBox="0 0 24 24"
-        fill={STATUS_COLOR[restaurant.status]}
-        stroke="white"
-        strokeWidth={1.5}
-        className="cursor-pointer drop-shadow"
-        role="img"
+      {/* 44×44 usynlig treffsone rundt selve pinnen (se design/README.md —
+          "Touch-mål"), sentrert uavhengig av pinnens variable størrelse. */}
+      <button
+        type="button"
         aria-label={restaurant.name}
+        aria-pressed={isSelected}
+        className="flex h-11 w-11 cursor-pointer items-center justify-center"
       >
-        <path d="M12 2C7.58 2 4 5.58 4 10c0 5.25 6.72 11.13 7.01 11.38a1.5 1.5 0 0 0 1.98 0C13.28 21.13 20 15.25 20 10c0-4.42-3.58-8-8-8Zm0 11a3 3 0 1 1 0-6 3 3 0 0 1 0 6Z" />
-      </svg>
+        <span
+          aria-hidden="true"
+          className={`rounded-full rounded-bl-[2px] transition-all duration-150 ${
+            isSelected ? "z-10 bg-accent" : STATUS_BG_CLASS[restaurant.status]
+          }`}
+          style={{
+            width: size,
+            height: size,
+            border: `${isSelected ? 3 : 2}px solid var(--color-bg)`,
+            transform: "rotate(45deg)",
+            boxShadow: isSelected
+              ? "0 4px 12px rgba(42,37,32,0.35)"
+              : "0 2px 6px rgba(42,37,32,0.30)",
+          }}
+        />
+      </button>
     </Marker>
   );
 }

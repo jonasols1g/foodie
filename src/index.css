@@ -2,12 +2,9 @@
 
 /*
  * Design-tokens fra designhandoffet (se design/README.md, seksjon 5a
- * «Krem & paprika»). Eksisterende tokennavn (brand/visited/planned/surface/
- * surface-border/text-primary/text-muted) beholdes for å unngå å måtte
- * røre alle komponenter i samme slengen, men verdiene er oppdatert til den
- * nye paletten — det gir konsistent restyling appen rundt uten en full
- * sweep. `--radius-*` overstyrer Tailwinds egne rounded-sm/md/lg/xl/2xl,
- * så eksisterende `rounded-*`-bruk arver den nye skalaen automatisk.
+ * «Krem & paprika»). `--radius-*` overstyrer Tailwinds egne
+ * rounded-sm/md/lg/xl/2xl, så `rounded-*`-bruk arver den nye skalaen
+ * automatisk.
  */
 @theme {
   --font-sans: "Schibsted Grotesk", ui-sans-serif, system-ui, sans-serif;
@@ -43,13 +40,6 @@
   --radius-xl: 18px;
   --radius-2xl: 20px;
   --radius-sheet: 28px;
-
-  /* Eksisterende tokennavn, nye verdier (se kommentar over @theme). */
-  --color-brand: var(--color-accent);
-  --color-brand-dark: var(--color-accent-strong);
-  --color-surface-border: var(--color-border);
-  --color-text-primary: var(--color-ink);
-  --color-text-muted: var(--color-ink-muted);
 }
 
 :root {
@@ -58,7 +48,66 @@
 
 body {
   min-height: 100vh;
-  color: var(--color-text-primary);
+  color: var(--color-ink);
   background: var(--color-bg);
   font-family: var(--font-sans);
+}
+
+/*
+ * Restaurantpopup på kartet (se design/README.md, skjerm 2). react-map-gl
+ * sin <Popup className="foodie-popup"> setter denne klassen på
+ * mapbox-gl sin egen popup-rot — innholdet under styres derfor via
+ * global CSS istedenfor Tailwind-utilities på selve `.mapboxgl-popup-content`.
+ * Standard-pekeren (`.mapboxgl-popup-tip`) skjules til fordel for en egen
+ * rotert firkant i ::after, i tråd med spesifikasjonens 16×16 rotert peker.
+ */
+.foodie-popup .mapboxgl-popup-tip {
+  display: none;
+}
+
+.foodie-popup .mapboxgl-popup-content {
+  position: relative;
+  background: var(--color-surface);
+  border: 1.5px solid var(--color-accent);
+  border-radius: var(--radius-2xl);
+  padding: 14px 16px;
+  box-shadow: 0 12px 28px rgba(42, 37, 32, 0.24);
+}
+
+.foodie-popup .mapboxgl-popup-content::after {
+  content: "";
+  position: absolute;
+  bottom: -9px;
+  left: 50%;
+  width: 16px;
+  height: 16px;
+  background: var(--color-surface);
+  border-right: 1.5px solid var(--color-accent);
+  border-bottom: 1.5px solid var(--color-accent);
+  transform: translateX(-50%) rotate(45deg);
+}
+
+/*
+ * Kortets fade + høydekollaps når et sted faller ut av gjeldende filter
+ * etter en statusendring (se design/README.md — "Statusendring"). Grid-
+ * raden animeres fra 1fr til 0fr istedenfor `max-height`, som ellers
+ * krever en kjent starthøyde målt via JS.
+ */
+.card-collapse-row {
+  display: grid;
+  grid-template-rows: 1fr;
+  opacity: 1;
+  transition:
+    grid-template-rows 200ms ease-out,
+    opacity 200ms ease-out;
+}
+
+.card-collapse-row.card-collapse-row--collapsed {
+  grid-template-rows: 0fr;
+  opacity: 0;
+}
+
+.card-collapse-row > div {
+  min-height: 0;
+  overflow: hidden;
 }

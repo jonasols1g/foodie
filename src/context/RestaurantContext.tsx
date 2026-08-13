@@ -22,7 +22,7 @@ export interface RestaurantContextValue {
   /** `true` når siste lagringsforsøk feilet. */
   saveError: boolean;
   dismissSaveError: () => void;
-  addRestaurant: (input: NewRestaurantInput) => void;
+  addRestaurant: (input: NewRestaurantInput, status?: RestaurantStatus) => void;
   setStatus: (id: string, status: RestaurantStatus) => void;
   updateRestaurant: (id: string, patch: Partial<Restaurant>) => void;
   removeRestaurant: (id: string) => void;
@@ -119,7 +119,7 @@ export function RestaurantProvider({
   }, []);
 
   const addRestaurant = useCallback(
-    (input: NewRestaurantInput) => {
+    (input: NewRestaurantInput, status: RestaurantStatus = "planned") => {
       if (userId === null) {
         return;
       }
@@ -130,10 +130,12 @@ export function RestaurantProvider({
       // server-side, i motsetning til watchlistens `setDoc` med kjent
       // `mediaId`.
       const tempId = `temp-${crypto.randomUUID()}`;
+      const visitedAt = status === "visited" ? new Date().toISOString() : undefined;
       const optimisticRestaurant: Restaurant = {
         ...input,
         id: tempId,
-        status: "planned",
+        status,
+        visitedAt,
         addedAt: new Date().toISOString(),
       };
       const next = [...previous, optimisticRestaurant];
@@ -143,7 +145,8 @@ export function RestaurantProvider({
       storage
         .add(userId, {
           ...input,
-          status: "planned",
+          status,
+          visitedAt,
           addedAt: optimisticRestaurant.addedAt,
         })
         .then((newId) => {

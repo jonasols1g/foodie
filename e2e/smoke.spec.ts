@@ -19,7 +19,7 @@ test("appen laster under /foodie/-understien og viser tom liste", async ({
 }) => {
   await page.goto("./");
   await expect(page.getByRole("heading", { name: "Foodie" })).toBeVisible();
-  await expect(page.getByText("Ingen restauranter lagt til ennå.")).toBeVisible();
+  await expect(page.getByText("Ingen steder ennå")).toBeVisible();
   await expect(
     page.getByRole("button", { name: "+ Legg til restaurant" }),
   ).toBeVisible();
