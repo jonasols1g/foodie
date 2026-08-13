@@ -1,10 +1,8 @@
 export const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
 
-// Dempet lys stil (se design/README.md — "Mapbox-stil") — Light v11 er den
-// pragmatiske varianten av de to alternativene designet nevner (en egen
-// Mapbox Studio-stil med tilpassede land-/vann-/veifarger krever en
-// hostet stil vi ikke har).
-export const MAPBOX_STYLE_URL = "mapbox://styles/mapbox/light-v11";
+// Mapbox sin standard fargerike stil (avvik fra den dempede stilen i
+// design/README.md — eksplisitt bedt om av bruker).
+export const MAPBOX_STYLE_URL = "mapbox://styles/mapbox/streets-v12";
 
 // Oslo — fallback-senter når det ikke finnes restauranter å sentrere kartet
 // rundt ennå.

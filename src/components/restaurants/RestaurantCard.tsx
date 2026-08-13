@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { ExternalLink, Trash2 } from "lucide-react";
 import type { Restaurant, RestaurantStatus } from "../../types/restaurant";
-import { CategoryChip } from "./CategoryChip";
 import { RestaurantStatusBadge } from "./RestaurantStatusBadge";
 import { RestaurantStatusToggle } from "./RestaurantStatusToggle";
 
@@ -90,13 +89,6 @@ export function RestaurantCard({
           </div>
           <RestaurantStatusBadge status={restaurant.status} />
         </div>
-        {restaurant.categories.length > 0 && (
-          <div className="flex flex-wrap gap-1.5">
-            {restaurant.categories.map((category) => (
-              <CategoryChip key={category} category={category} />
-            ))}
-          </div>
-        )}
       </button>
 
       {isSelected && (

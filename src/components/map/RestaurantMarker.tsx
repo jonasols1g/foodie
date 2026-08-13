@@ -7,8 +7,10 @@ export interface RestaurantMarkerProps {
   onClick: (id: string) => void;
 }
 
-// Se design/README.md — "Pin": rounded-full + éi avrundet hjørne + rotate-45
-// gir en dråpe-/diamantform. Planlagt/besøkt-farge, valgt = større + accent.
+// Se design/README.md — "Pin": rounded-full + éi skarp hjørne + rotate-45
+// gir en dråpe-/diamantform. `rounded-br` (ikke `-bl`) er bevisst: etter 45°
+// rotasjon er det det hjørnet som ender opp pekende ned, som en vanlig
+// kartnål. Planlagt/besøkt-farge, valgt = større + accent.
 const STATUS_BG_CLASS: Record<Restaurant["status"], string> = {
   planned: "bg-planned",
   visited: "bg-visited",
@@ -41,7 +43,7 @@ export function RestaurantMarker({
       >
         <span
           aria-hidden="true"
-          className={`rounded-full rounded-bl-[2px] transition-all duration-150 ${
+          className={`rounded-full rounded-br-[2px] transition-all duration-150 ${
             isSelected ? "z-10 bg-accent" : STATUS_BG_CLASS[restaurant.status]
           }`}
           style={{

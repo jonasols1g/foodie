@@ -53,15 +53,22 @@ export function RestaurantsPage() {
   const [exitingIds, setExitingIds] = useState<ReadonlySet<string>>(new Set());
   const exitTimersRef = useRef(new Map<string, number>());
 
+  // Alfabetisk (norsk sortering, så æøå havner riktig) — ikke etter
+  // `addedAt`/Firestores dokumentrekkefølge, som er vilkårlig.
+  const sortedRestaurants = useMemo(
+    () => [...restaurants].sort((a, b) => a.name.localeCompare(b.name, "nb")),
+    [restaurants],
+  );
+
   const filtered = useMemo(
     () =>
       statusFilter === "all"
-        ? restaurants
-        : restaurants.filter(
+        ? sortedRestaurants
+        : sortedRestaurants.filter(
             (restaurant) =>
               restaurant.status === statusFilter || exitingIds.has(restaurant.id),
           ),
-    [restaurants, statusFilter, exitingIds],
+    [sortedRestaurants, statusFilter, exitingIds],
   );
 
   function handleStatusChange(id: string, status: RestaurantStatus) {

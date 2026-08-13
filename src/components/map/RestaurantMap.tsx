@@ -3,7 +3,6 @@ import Map, { Popup, type MapRef } from "react-map-gl/mapbox";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { ExternalLink, List, Locate, X } from "lucide-react";
 import type { Restaurant, RestaurantStatus } from "../../types/restaurant";
-import { CategoryChip } from "../restaurants/CategoryChip";
 import { RestaurantStatusBadge } from "../restaurants/RestaurantStatusBadge";
 import { RestaurantStatusToggle } from "../restaurants/RestaurantStatusToggle";
 import {
@@ -58,9 +57,6 @@ function RestaurantPopupContent({
       </div>
       <div className="flex flex-wrap items-center gap-1.5">
         <RestaurantStatusBadge status={restaurant.status} />
-        {restaurant.categories[0] && (
-          <CategoryChip category={restaurant.categories[0]} />
-        )}
       </div>
       <div className="flex items-center gap-2 pt-1">
         <RestaurantStatusToggle
@@ -246,7 +242,12 @@ export function RestaurantMap({
             });
           });
         }}
-        className="border-border-strong bg-bg absolute top-3 right-3 z-10 flex h-10 w-10 items-center justify-center rounded-xl border shadow-[0_2px_8px_rgba(42,37,32,0.14)]"
+        className={`border-border-strong bg-bg absolute right-3 z-10 flex h-10 w-10 items-center justify-center rounded-xl border shadow-[0_2px_8px_rgba(42,37,32,0.14)] ${
+          // I utvidet visning flyter filterpillene (RestaurantsPage) over
+          // kartet fra top-3 og ned — knappen må stå lavere enn dem for ikke
+          // å bli dekket.
+          expanded ? "top-20" : "top-3"
+        }`}
       >
         <Locate size={18} strokeWidth={1.8} className="text-ink-soft" />
       </button>

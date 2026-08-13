@@ -96,7 +96,7 @@ Alle skjermer er 390 px brede. Vertikal struktur på hovedskjermen, ovenfra og n
 Kartet fyller hele skjermen. Filterpillene flyter over kartet (samme piller, men `bg-bg` og egen skygge `0 3px 10px rgba(42,37,32,0.14)`, ingen border-b). Nederst midtstilt pille «Vis liste»: høyde 48, `px-[22px]`, `rounded-xl`, `bg-bg`, 1 px `border-strong`, 15/600, med et lite listeikon (tre 2 px linjer, 5 px mellomrom).
 
 **Popup** (egen `<Popup>`, `closeButton={false}`, `offset={22}`, ankret over pinnen):
-bredde 280, `rounded-2xl`, `bg-surface`, 1.5 px `border-accent`, padding 14/16, `gap-2`. Innhold: navn 17/600, adresse 13 `text-ink-muted`, lukkekryss 28×28 `rounded-[9px] bg-surface-sunken`, statusbadge + kategori-chip på egen rad, deretter handlingsrad (primærknapp + nettside-ikonknapp). Peker: 16×16 rotert 45°, `bg-surface`, høyre+bunn kant i accent, sentrert på pinnens x, 9 px under kortets underkant.
+bredde 280, `rounded-2xl`, `bg-surface`, 1.5 px `border-accent`, padding 14/16, `gap-2`. Innhold: navn 17/600, adresse 13 `text-ink-muted`, lukkekryss 28×28 `rounded-[9px] bg-surface-sunken`, statusbadge på egen rad (ingen kategori-chip — avvik, se RestaurantCard), deretter handlingsrad (primærknapp + nettside-ikonknapp). Peker: 16×16 rotert 45°, `bg-surface`, høyre+bunn kant i accent, sentrert på pinnens x, 9 px under kortets underkant.
 
 ### 3. Legg til — steg 1, søk
 Bottom sheet, høyde 660 px, `rounded-t-[28px]`, `bg-bg`, skygge oppover. Backdrop `rgba(42,37,32,0.42)`. Dra-håndtak: 40×4, `rounded-full`, `bg-border-strong`, midtstilt, 14 px under toppen.
@@ -108,7 +108,7 @@ Bottom sheet, høyde 660 px, `rounded-t-[28px]`, `bg-bg`, skygge oppover. Backdr
 
 ### 4. Legg til — steg 2, bekreft
 Sheet 620 px høy. Tilbakeknapp 36×36 `rounded-xl bg-surface-sunken` med chevron, ved siden av «Bekreft stedet» 20/700.
-- **Oppsummeringskort:** `bg-surface rounded-2xl border border-border p-4`: navn 19/600, adresse 14 `text-ink-muted`, to mono-chips (kategori og «59.905, 10.740»).
+- **Oppsummeringskort:** `bg-surface rounded-2xl border border-border p-4`: navn 19/600, adresse 14 `text-ink-muted`, én mono-chip med koordinater («59.905, 10.740») — ingen kategori-chip (avvik, se RestaurantCard).
 - **Felt:** label 13/600 `text-ink-soft` + «valgfritt» i `text-ink-faint` 400. Input høyde 50, textarea høyde 96, `rounded-lg bg-surface border border-border-strong`, padding 12/14, tekst 15.
 - **Status-valg:** to knapper side om side, høyde 46, `rounded-lg`. Valgt: `bg-planned-soft border-1.5 border-planned text-planned-ink`. Uvalgt: `bg-surface border border-border-strong text-ink-muted` med grå prikk.
 - **Bunnrad:** «Avbryt» 100 px bred, `bg-surface-sunken text-ink-soft`, og «Lagre restaurant» `flex-1 bg-accent text-white`, begge høyde 52, `rounded-xl`.
@@ -126,11 +126,10 @@ Header-teller viser «0 AV 8». Kartet dempet med en mono-pille nederst: «INGEN
 
 To visuelle tilstander, styrt av om kortet er valgt.
 
-**Kollapset (ikke valgt)** — høyde ca. 92 px:
+**Kollapset (ikke valgt):**
 `bg-surface rounded-2xl border border-border p-[14px_16px] flex flex-col gap-[7px]`
 - Rad 1: kolonne med navn 17/600 og adresse 13 `text-ink-muted`; til høyre statusbadge (`flex-none`).
-- Rad 2: kategori-chip(s).
-- Ingen handlinger, ingen notater.
+- Ingen kategori-chip(s) i listen (avvik fra opprinnelig forslag — tok for mye plass med flere kategorier per sted), ingen handlinger, ingen notater.
 
 **Valgt** — samme, men `border-1.5 border-accent` + skygge, og i tillegg:
 - Notatlinje 13 px `text-ink-soft`, line-height 1.45 (utelates hvis notater mangler).
@@ -147,10 +146,10 @@ To visuelle tilstander, styrt av om kortet er valgt.
 
 ## Kart og pins
 
-**Mapbox-stil:** dempet lys stil (Light v11 med redusert metning) eller egen stil med land `#E7E7DC`, vann `#D9E0DE`, veier `#F6F3E9`, bygningsflater `#DEDED1`. POI-labels av, gateetiketter kun på høy zoom — kartet skal ikke konkurrere med pins.
+**Mapbox-stil:** Mapbox sin standard fargerike stil (`streets-v12`) — avvik fra opprinnelig dempet forslag, valgt av produkteier for et mer levende kart.
 
 **Pin** (egen DOM-marker, ikke Mapbox' standard):
-- 22×22 px, `rounded-full rounded-bl-[2px] rotate-45`, 2 px kant i `--color-bg`, skygge.
+- 22×22 px, `rounded-full rounded-br-[2px] rotate-45` (spissen peker ned), 2 px kant i `--color-bg`, skygge.
 - Planlagt: `bg-planned` (#C9932B). Besøkt: `bg-visited` (#6C7A3F).
 - Valgt: 34×34, 3 px kant, `bg-accent`, høyere z-index, transition 160 ms.
 - Usynlig treffsone 44×44 sentrert på pinnen.

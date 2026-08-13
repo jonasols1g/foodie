@@ -308,11 +308,6 @@ export function AddPlaceSheet({ onClose }: AddPlaceSheetProps) {
               <p className="text-ink text-[19px] font-semibold">{selectedPlace.name}</p>
               <p className="text-ink-muted text-[14px]">{selectedPlace.address}</p>
               <div className="mt-2 flex flex-wrap gap-1.5">
-                {selectedPlace.categories[0] && (
-                  <span className="bg-surface-sunken text-ink-muted inline-flex h-[22px] items-center rounded-sm px-2 font-mono text-[11px]">
-                    {selectedPlace.categories[0]}
-                  </span>
-                )}
                 <span className="bg-surface-sunken text-ink-muted inline-flex h-[22px] items-center rounded-sm px-2 font-mono text-[11px]">
                   {selectedPlace.lat.toFixed(3)}, {selectedPlace.lng.toFixed(3)}
                 </span>
