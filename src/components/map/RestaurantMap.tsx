@@ -132,6 +132,19 @@ export function RestaurantMap({
     );
   }, [restaurants]);
 
+  // Mapbox GL resizer canvasen automatisk ved vindusresize, men container-
+  // høyden endrer seg her uten noen vindusresize (kun `expanded`-klassen
+  // bytter). Uten dette blir canvasen stående i forrige størrelse med tomt
+  // bakgrunnsfelt under når kartet utvides til fullskjerm.
+  useEffect(() => {
+    const map = mapRef.current?.getMap();
+    if (!map) {
+      return;
+    }
+    const id = requestAnimationFrame(() => map.resize());
+    return () => cancelAnimationFrame(id);
+  }, [expanded]);
+
   // Delt seleksjon (se design/README.md): easeTo valgt punkt med offset
   // nedover så popupen får plass over pinnen.
   useEffect(() => {
