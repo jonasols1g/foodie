@@ -82,6 +82,28 @@ function RestaurantPopupContent({
   );
 }
 
+// Skjul andre POI-er enn mat/drikke (hotell, museer, skoler, kirker,
+// matbutikker osv.) i standardstilen `streets-v12` — bruker er kun
+// interessert i restauranter/barer/lignende på selve kartflaten.
+// `poi-label` (kilde-lag `poi_label`) er Mapbox sitt generelle POI-lag; klassen
+// "food_and_drink" dekker restaurant/bar/cafe/pub/fast food/nightclub, mens
+// f.eks. matbutikker ligger i en egen klasse ("food_and_drink_stores") og
+// filtreres dermed bort med resten. Kollektivstopp (T-bane/buss/trikk) ligger
+// i et helt separat lag (`transit-label`, kilde-lag `transit_stop_label`) og
+// berøres ikke av dette.
+function restrictPoiLabelsToFoodAndDrink(map: ReturnType<MapRef["getMap"]>) {
+  if (!map.getLayer("poi-label")) {
+    return;
+  }
+  const existingFilter = map.getFilter("poi-label");
+  const nextFilter = [
+    "all",
+    ...(existingFilter ? [existingFilter] : []),
+    ["==", ["get", "class"], "food_and_drink"],
+  ];
+  map.setFilter("poi-label", nextFilter as never);
+}
+
 /**
  * Se design/README.md — skjerm 1 (kartflate 236px) og skjerm 2 (kart
  * utvidet). Høyden styres internt av `expanded`-propen fremfor en ekstern
@@ -175,7 +197,27 @@ export function RestaurantMap({
           bevisst stikker opp over kartflaten når den er valgt nær toppen) —
           kart-canvasen klipper seg selv naturlig via egen width/height 100%. */}
       <Map
-        ref={mapRef}
+        ref={(instance) => {
+          // `onLoad` (native 'load') fyres upålitelig her — kartet er en
+          // kontrollert komponent (viewState går tur-retur via onMove), noe
+          // som ser ut til å holde `map.loaded()` evig `false` og dermed
+          // aldri trigge 'load'. Ref-callbacken kjører derimot pålitelig med
+          // det samme instansen blir klar (se @vis.gl/react-mapbox sin
+          // useImperativeHandle), og 'style.load' venter kun på selve
+          // stilen/kildene — ikke på at alle fliser er ferdig lastet.
+          mapRef.current = instance;
+          if (!instance) {
+            return;
+          }
+          const map = instance.getMap();
+          if (map.isStyleLoaded()) {
+            restrictPoiLabelsToFoodAndDrink(map);
+          } else {
+            map.once("style.load", () => {
+              restrictPoiLabelsToFoodAndDrink(map);
+            });
+          }
+        }}
         {...viewState}
         onMove={(event) => {
           setViewState(event.viewState);

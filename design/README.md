@@ -146,7 +146,7 @@ To visuelle tilstander, styrt av om kortet er valgt.
 
 ## Kart og pins
 
-**Mapbox-stil:** Mapbox sin standard fargerike stil (`streets-v12`) — avvik fra opprinnelig dempet forslag, valgt av produkteier for et mer levende kart.
+**Mapbox-stil:** Mapbox sin standard fargerike stil (`streets-v12`) — avvik fra opprinnelig dempet forslag, valgt av produkteier for et mer levende kart. Stilens generelle POI-lag (`poi-label`) filtreres til kun å vise klassen `food_and_drink` (restaurant/bar/cafe/pub/fast food/nightclub) — hoteller, museer, skoler, kirker, matbutikker og lignende skjules. Kollektivstopp (`transit-label`) er et eget lag og påvirkes ikke. Se `restrictPoiLabelsToFoodAndDrink` i `RestaurantMap.tsx`.
 
 **Pin** (egen DOM-marker, ikke Mapbox' standard):
 - 22×22 px, `rounded-full rounded-br-[2px] rotate-45` (spissen peker ned), 2 px kant i `--color-bg`, skygge.
