@@ -1,10 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Map, { Popup, type MapRef } from "react-map-gl/mapbox";
 import "mapbox-gl/dist/mapbox-gl.css";
-import { ExternalLink, List, Locate, X } from "lucide-react";
+import { ExternalLink, List, Locate, Plus, X } from "lucide-react";
 import type { Restaurant, RestaurantStatus } from "../../types/restaurant";
+import type { RetrievedPlace } from "../../types/place";
 import { RestaurantStatusBadge } from "../restaurants/RestaurantStatusBadge";
 import { RestaurantStatusToggle } from "../restaurants/RestaurantStatusToggle";
+import { useRestaurants } from "../../context/RestaurantContext";
+import { retrievePlaceNearPoi } from "../../hooks/usePlaceSearch";
 import {
   DEFAULT_MAP_CENTER,
   DEFAULT_MAP_ZOOM,
@@ -12,6 +15,68 @@ import {
   MAPBOX_TOKEN,
 } from "../../services/map/mapboxConfig";
 import { RestaurantMarker } from "./RestaurantMarker";
+
+/** Ekte Mapbox-POI klikket i kartet, som ennå ikke finnes i brukerens liste. */
+interface PendingPoi {
+  /** `navn:lng:lat` — identifiserer klikket punkt, brukes til å forkaste et
+   * asynkront oppslag-svar som kommer tilbake etter at et nytt punkt er
+   * klikket (eller popupen lukket) i mellomtiden. */
+  key: string;
+  name: string;
+  lng: number;
+  lat: number;
+  place: RetrievedPlace | null;
+  lookupStatus: "loading" | "ready" | "error";
+}
+
+// Et POI regnes som samme sted som en eksisterende restaurant ved likt navn
+// (case-insensitive) innenfor en grov ~50m-radius — presist nok til å unngå
+// duplikater uten å måtte gjøre et nettverkskall for å sjekke.
+const DUPLICATE_LAT_TOLERANCE = 0.0006;
+const DUPLICATE_LNG_TOLERANCE = 0.001;
+
+function findExistingRestaurant(
+  restaurants: Restaurant[],
+  name: string,
+  lng: number,
+  lat: number,
+): Restaurant | null {
+  const normalizedName = name.trim().toLowerCase();
+  return (
+    restaurants.find(
+      (restaurant) =>
+        restaurant.name.trim().toLowerCase() === normalizedName &&
+        Math.abs(restaurant.lat - lat) < DUPLICATE_LAT_TOLERANCE &&
+        Math.abs(restaurant.lng - lng) < DUPLICATE_LNG_TOLERANCE,
+    ) ?? null
+  );
+}
+
+// Lokal, minimal form for et Mapbox GL-feature — unngår å referere
+// mapbox-gl sin egen `GeoJSONFeature`-type direkte, som typescript-eslint sin
+// type-aware linting (i motsetning til `tsc` selv) ikke klarer å resolve
+// nedover i geometri-/properties-unionene (feiler med "type that cannot be
+// resolved" på nettopp de feltene, se PR-diskusjon).
+interface PoiClickFeature {
+  layer?: { id?: string };
+  properties: Record<string, unknown> | null;
+  geometry: { type: string; coordinates: number[] };
+}
+
+/** Plukker ut navn + posisjon fra et `poi-label`-treff i et kartklikk. */
+function extractPoiFeatureInfo(
+  feature: PoiClickFeature | undefined,
+): { name: string; lng: number; lat: number } | null {
+  if (!feature || feature.geometry.type !== "Point") {
+    return null;
+  }
+  const [lng, lat] = feature.geometry.coordinates;
+  const name = feature.properties?.name;
+  if (typeof name !== "string" || name.trim() === "") {
+    return null;
+  }
+  return { name, lng, lat };
+}
 
 export interface RestaurantMapProps {
   restaurants: Restaurant[];
@@ -82,6 +147,54 @@ function RestaurantPopupContent({
   );
 }
 
+function PendingPoiPopupContent({
+  name,
+  place,
+  lookupStatus,
+  onClose,
+  onAdd,
+}: {
+  name: string;
+  place: RetrievedPlace | null;
+  lookupStatus: PendingPoi["lookupStatus"];
+  onClose: () => void;
+  onAdd: () => void;
+}) {
+  return (
+    <div className="flex w-[248px] flex-col gap-2">
+      <div className="flex items-start justify-between gap-2">
+        <div>
+          <p className="text-ink text-[17px] font-semibold">{name}</p>
+          <p className="text-ink-muted text-[13px]">
+            {lookupStatus === "ready" && place
+              ? place.address
+              : lookupStatus === "error"
+                ? "Fant ikke stedet — prøv søk i stedet."
+                : "Henter informasjon …"}
+          </p>
+        </div>
+        <button
+          type="button"
+          aria-label="Lukk"
+          onClick={onClose}
+          className="bg-surface-sunken flex h-7 w-7 flex-none items-center justify-center rounded-[9px]"
+        >
+          <X size={16} strokeWidth={1.8} className="text-ink-soft" />
+        </button>
+      </div>
+      <button
+        type="button"
+        onClick={onAdd}
+        disabled={lookupStatus !== "ready"}
+        className="bg-accent flex h-11 items-center justify-center gap-1.5 rounded-lg text-[14px] font-semibold text-white transition disabled:opacity-50"
+      >
+        <Plus size={16} strokeWidth={2} />
+        Legg til restaurant
+      </button>
+    </div>
+  );
+}
+
 // Skjul andre POI-er enn mat/drikke (hotell, museer, skoler, kirker,
 // matbutikker osv.) i standardstilen `streets-v12` — bruker er kun
 // interessert i restauranter/barer/lignende på selve kartflaten.
@@ -125,11 +238,88 @@ export function RestaurantMap({
     latitude: DEFAULT_MAP_CENTER.lat,
     zoom: DEFAULT_MAP_ZOOM,
   });
+  const [pendingPoi, setPendingPoi] = useState<PendingPoi | null>(null);
+  // Hele (ufiltrerte) datasettet — `restaurants`-propen er allerede filtrert
+  // av RestaurantsPage, men duplikatsjekken ved POI-klikk må gjelde alle
+  // brukerens steder uansett gjeldende filter.
+  const { restaurants: allRestaurants, addRestaurant } = useRestaurants();
 
+  // Slår opp i hele (ufiltrerte) datasettet, ikke bare `restaurants`-propen —
+  // et POI-klikk (under) kan velge en restaurant som finnes i listen, men som
+  // faller utenfor gjeldende statusfilter og dermed ikke har en egen pin.
   const selectedRestaurant = useMemo(
-    () => restaurants.find((restaurant) => restaurant.id === selectedId) ?? null,
-    [restaurants, selectedId],
+    () => allRestaurants.find((restaurant) => restaurant.id === selectedId) ?? null,
+    [allRestaurants, selectedId],
   );
+
+  // Et POI som allerede finnes i listen skal ikke tilby "legg til" på nytt —
+  // klikk på det velger heller det eksisterende stedet, med samme popup som
+  // ellers.
+  function handlePoiClick(name: string, lng: number, lat: number) {
+    const existing = findExistingRestaurant(allRestaurants, name, lng, lat);
+    if (existing) {
+      setPendingPoi(null);
+      onSelectRestaurant(existing.id);
+      return;
+    }
+
+    onSelectRestaurant(null);
+    const key = `${name}:${lng}:${lat}`;
+    setPendingPoi({ key, name, lng, lat, place: null, lookupStatus: "loading" });
+
+    retrievePlaceNearPoi(name, { lng, lat })
+      .then((place) => {
+        setPendingPoi((current) => {
+          if (!current || current.key !== key) {
+            return current;
+          }
+          return place
+            ? { ...current, place, lookupStatus: "ready" }
+            : { ...current, lookupStatus: "error" };
+        });
+      })
+      .catch((error: unknown) => {
+        console.error("[RestaurantMap] Kunne ikke slå opp POI", error);
+        setPendingPoi((current) =>
+          current && current.key === key ? { ...current, lookupStatus: "error" } : current,
+        );
+      });
+  }
+
+  function handleAddPendingPoi() {
+    if (!pendingPoi?.place) {
+      return;
+    }
+    const place = pendingPoi.place;
+    addRestaurant(
+      {
+        name: place.name,
+        address: place.address,
+        lat: place.lat,
+        lng: place.lng,
+        mapboxId: place.mapboxId,
+        categories: place.categories,
+        websiteUrl: place.websiteUrl,
+        notes: "",
+      },
+      "planned",
+    );
+    setPendingPoi(null);
+  }
+
+  // Fokus på klikket POI, samme oppførsel som ved valg av egen pin (se
+  // useEffect for `selectedRestaurant` under).
+  useEffect(() => {
+    if (!pendingPoi) {
+      return;
+    }
+    mapRef.current?.getMap().easeTo({
+      center: [pendingPoi.lng, pendingPoi.lat],
+      offset: [0, 60],
+      duration: 400,
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingPoi?.key]);
 
   // Fokus ved filterbytte (se design/README.md): fitBounds på synlige pins,
   // 48px padding, maks zoom 14. `restaurants` er allerede det filtrerte
@@ -225,7 +415,21 @@ export function RestaurantMap({
         mapboxAccessToken={MAPBOX_TOKEN}
         mapStyle={MAPBOX_STYLE_URL}
         style={{ width: "100%", height: "100%" }}
-        onClick={() => {
+        // `poi-label` er allerede filtrert til mat/drikke-POI-er (se
+        // restrictPoiLabelsToFoodAndDrink) — et klikk som treffer laget er
+        // dermed alltid en restaurant/bar/kafé man kan legge til.
+        interactiveLayerIds={["poi-label"]}
+        onClick={(event) => {
+          const features = event.features as unknown as PoiClickFeature[] | undefined;
+          const poi = extractPoiFeatureInfo(
+            features?.find((feature) => feature.layer?.id === "poi-label"),
+          );
+          if (poi) {
+            handlePoiClick(poi.name, poi.lng, poi.lat);
+            return;
+          }
+
+          setPendingPoi(null);
           if (expanded) {
             onSelectRestaurant(null);
             return;
@@ -238,7 +442,10 @@ export function RestaurantMap({
             key={restaurant.id}
             restaurant={restaurant}
             isSelected={restaurant.id === selectedId}
-            onClick={onSelectRestaurant}
+            onClick={(id) => {
+              setPendingPoi(null);
+              onSelectRestaurant(id);
+            }}
           />
         ))}
 
@@ -262,6 +469,32 @@ export function RestaurantMap({
                 onSelectRestaurant(null);
               }}
               onStatusChange={onStatusChange}
+            />
+          </Popup>
+        )}
+
+        {pendingPoi && (
+          <Popup
+            longitude={pendingPoi.lng}
+            latitude={pendingPoi.lat}
+            anchor="bottom"
+            offset={22}
+            closeButton={false}
+            closeOnClick={false}
+            maxWidth="none"
+            className="foodie-popup"
+            onClose={() => {
+              setPendingPoi(null);
+            }}
+          >
+            <PendingPoiPopupContent
+              name={pendingPoi.name}
+              place={pendingPoi.place}
+              lookupStatus={pendingPoi.lookupStatus}
+              onClose={() => {
+                setPendingPoi(null);
+              }}
+              onAdd={handleAddPendingPoi}
             />
           </Popup>
         )}

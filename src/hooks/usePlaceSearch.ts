@@ -93,6 +93,58 @@ function parseRetrievedPlace(data: unknown): RetrievedPlace | null {
   };
 }
 
+/**
+ * Engangsoppslag for et POI klikket direkte i kartet (se RestaurantMap): ett
+ * suggest-kall med `proximity` satt til klikkpunktet — for å treffe riktig
+ * duplikat når flere steder deler navn — etterfulgt av ett retrieve-kall.
+ * Egen sessionToken per kall, siden dette ikke er en interaktiv søkesesjon
+ * som `usePlaceSearch` sin `suggest`/`retrieve` over.
+ */
+export async function retrievePlaceNearPoi(
+  name: string,
+  proximity: { lng: number; lat: number },
+): Promise<RetrievedPlace | null> {
+  const sessionToken = crypto.randomUUID();
+
+  const suggestUrl = new URL(`${SEARCH_BOX_URL}/suggest`);
+  suggestUrl.searchParams.set("q", name);
+  suggestUrl.searchParams.set("access_token", MAPBOX_TOKEN);
+  suggestUrl.searchParams.set("session_token", sessionToken);
+  suggestUrl.searchParams.set("language", "no");
+  suggestUrl.searchParams.set("poi_category", "restaurant,cafe,bar,fast_food");
+  suggestUrl.searchParams.set("country", "no");
+  suggestUrl.searchParams.set(
+    "proximity",
+    `${proximity.lng.toFixed(6)},${proximity.lat.toFixed(6)}`,
+  );
+  suggestUrl.searchParams.set("limit", "1");
+
+  try {
+    const suggestResponse = await fetch(suggestUrl);
+    if (!suggestResponse.ok) {
+      throw new Error(`Mapbox suggest feilet med status ${suggestResponse.status}`);
+    }
+    const suggestData: unknown = await suggestResponse.json();
+    const [top] = parseSuggestions(suggestData);
+    if (!top) {
+      return null;
+    }
+
+    const retrieveUrl = new URL(`${SEARCH_BOX_URL}/retrieve/${top.mapboxId}`);
+    retrieveUrl.searchParams.set("access_token", MAPBOX_TOKEN);
+    retrieveUrl.searchParams.set("session_token", sessionToken);
+    const retrieveResponse = await fetch(retrieveUrl);
+    if (!retrieveResponse.ok) {
+      throw new Error(`Mapbox retrieve feilet med status ${retrieveResponse.status}`);
+    }
+    const retrieveData: unknown = await retrieveResponse.json();
+    return parseRetrievedPlace(retrieveData);
+  } catch (error) {
+    console.error("[retrievePlaceNearPoi] Kunne ikke slå opp sted", error);
+    return null;
+  }
+}
+
 export interface UsePlaceSearchResult {
   suggestions: PlaceSuggestion[];
   isSearching: boolean;
