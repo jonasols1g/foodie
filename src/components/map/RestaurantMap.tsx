@@ -71,6 +71,9 @@ function extractPoiFeatureInfo(
     return null;
   }
   const [lng, lat] = feature.geometry.coordinates;
+  if (typeof lng !== "number" || typeof lat !== "number") {
+    return null;
+  }
   const name = feature.properties?.name;
   if (typeof name !== "string" || name.trim() === "") {
     return null;
