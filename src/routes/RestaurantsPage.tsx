@@ -115,12 +115,6 @@ export function RestaurantsPage() {
   const filterEmptyCopy =
     statusFilter !== "all" ? FILTER_EMPTY_COPY[statusFilter] : null;
 
-  const headerCounter = isLoading
-    ? null
-    : statusFilter !== "all" && filtered.length === 0 && hasAnyRestaurants
-      ? `${filtered.length} AV ${restaurants.length}`
-      : `${restaurants.length} ${restaurants.length === 1 ? "STED" : "STEDER"}`;
-
   return (
     <div>
       <header className="flex items-center justify-between px-5 pt-4 pb-3">
@@ -134,11 +128,6 @@ export function RestaurantsPage() {
             className="translate-y-[1px]"
           />
         </div>
-        {headerCounter && (
-          <span className="text-ink-muted font-mono text-[11px] tracking-[0.04em] uppercase">
-            {headerCounter}
-          </span>
-        )}
       </header>
 
       {saveError && (
