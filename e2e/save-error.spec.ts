@@ -25,6 +25,12 @@ test.beforeEach(async ({ page }) => {
   await page.route(
     "**/firestore.googleapis.com/v1/projects/*/databases/*/documents:commit**",
     async (route) => {
+      // Liten kunstig forsinkelse før feilsvaret — uten den er det optimistiske
+      // vinduet (Maaemo vises -> Firestore-kallet feiler -> rulles tilbake)
+      // noen ganger for kort til at Playwrights polling rekker å observere at
+      // restauranten faktisk dukket opp, før den forsvinner igjen (gjorde
+      // testen flaky i CI, der stubbet svar kommer tilbake nær-øyeblikkelig).
+      await new Promise((resolve) => setTimeout(resolve, 300));
       await route.fulfill({
         status: 500,
         json: { error: { code: 500, message: "simulert Firestore-feil (e2e)" } },
@@ -40,7 +46,17 @@ test("viser feilbanner og ruller tilbake den optimistiske oppdateringen når lag
 
   await page.getByRole("button", { name: "+ Legg til restaurant" }).click();
   await page.getByLabel("Søk etter restaurant").fill("Maaemo");
-  await page.getByRole("option", { name: /Maaemo/ }).click();
+
+  const suggestion = page.getByRole("option", { name: /Maaemo/ });
+  await expect(suggestion).toBeVisible();
+  await suggestion.click();
+
+  // Vent til steg 2 (bekreftelsesskjemaet) faktisk er rendret — dvs. at det
+  // asynkrone `retrieve`-kallet er fullført — før "Lagre restaurant" klikkes.
+  // Samme mønster som add-restaurant.spec.ts, for å unngå å klikke før React
+  // har rukket å bytte fra søkevisningen.
+  await expect(page.getByLabel("Nettside")).toHaveValue(MAAEMO.websiteUrl);
+
   await page.getByRole("button", { name: "Lagre restaurant" }).click();
 
   // Optimistisk: restauranten dukker opp umiddelbart, før Firestore-svaret.
