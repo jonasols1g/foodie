@@ -9,9 +9,9 @@ export interface RestaurantFilterBarProps {
 }
 
 const OPTIONS: { value: RestaurantStatusFilter; label: string }[] = [
-  { value: "all", label: "Alle" },
   { value: "planned", label: "Planlagt" },
   { value: "visited", label: "Besøkt" },
+  { value: "all", label: "Alle" },
 ];
 
 // Prikkfarge foran inaktive Planlagt/Besøkt-piller (se design/README.md).
