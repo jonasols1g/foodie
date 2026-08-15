@@ -35,7 +35,7 @@ interface PendingPoi {
 const DUPLICATE_LAT_TOLERANCE = 0.0006;
 const DUPLICATE_LNG_TOLERANCE = 0.001;
 
-function findExistingRestaurant(
+export function findExistingRestaurant(
   restaurants: Restaurant[],
   name: string,
   lng: number,
@@ -57,14 +57,14 @@ function findExistingRestaurant(
 // type-aware linting (i motsetning til `tsc` selv) ikke klarer å resolve
 // nedover i geometri-/properties-unionene (feiler med "type that cannot be
 // resolved" på nettopp de feltene, se PR-diskusjon).
-interface PoiClickFeature {
+export interface PoiClickFeature {
   layer?: { id?: string };
   properties: Record<string, unknown> | null;
   geometry: { type: string; coordinates: number[] };
 }
 
 /** Plukker ut navn + posisjon fra et `poi-label`-treff i et kartklikk. */
-function extractPoiFeatureInfo(
+export function extractPoiFeatureInfo(
   feature: PoiClickFeature | undefined,
 ): { name: string; lng: number; lat: number } | null {
   if (!feature || feature.geometry.type !== "Point") {

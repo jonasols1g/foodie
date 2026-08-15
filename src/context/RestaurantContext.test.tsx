@@ -1,6 +1,6 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { createMockRestaurantStorage } from "../test/mocks/createMockRestaurantStorage";
 import { createRestaurant } from "../test/fixtures/restaurant.fixtures";
 import { RestaurantProvider, useRestaurants } from "./RestaurantContext";
@@ -147,6 +147,40 @@ describe("RestaurantContext", () => {
       expect(result.current.restaurants[0]?.status).toBe("planned");
     });
     expect(result.current.restaurants[0]?.visitedAt).toBeUndefined();
+  });
+
+  it("oppdaterer en restaurant optimistisk og ruller tilbake når lagring feiler", async () => {
+    const restaurant = createRestaurant({ id: "r1", notes: "" });
+    // Egen lokal referanse til mock-funksjonen (i stedet for å hente den ut
+    // igjen via `storage.update`) — å referere en grensesnitt-metode direkte
+    // trigges av `@typescript-eslint/unbound-method`.
+    const updateMock = vi.fn().mockRejectedValue(new Error("nettverksfeil"));
+    const storage = createMockRestaurantStorage({
+      load: () => Promise.resolve([restaurant]),
+      update: updateMock,
+    });
+    const { result } = renderHook(() => useRestaurants(), {
+      wrapper: wrapperWithStorage(storage, "user-1"),
+    });
+
+    await waitFor(() => {
+      expect(result.current.restaurants).toHaveLength(1);
+    });
+
+    act(() => {
+      result.current.updateRestaurant("r1", { notes: "Bestill trøffelrisotto" });
+    });
+
+    // Optimistisk: notatet er oppdatert umiddelbart, før Firestore-kallet resolver.
+    expect(result.current.restaurants[0]?.notes).toBe("Bestill trøffelrisotto");
+    expect(updateMock).toHaveBeenCalledWith("user-1", "r1", {
+      notes: "Bestill trøffelrisotto",
+    });
+
+    await waitFor(() => {
+      expect(result.current.saveError).toBe(true);
+    });
+    expect(result.current.restaurants[0]?.notes).toBe("");
   });
 
   it("fjerner en restaurant optimistisk", async () => {
